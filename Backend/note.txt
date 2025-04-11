@@ -1,0 +1,9 @@
+Backend
+For install env
+    python3 -m venv .venv
+For activate
+    source bin/activate
+For install flask
+    pip install flask
+Deactivate env
+    deactivate
