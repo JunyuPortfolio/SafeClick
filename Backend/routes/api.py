@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.logic import check_url, generate_response
+from services.logic import generate_response
 
 api_bp = Blueprint('api', __name__)
 
