@@ -1,14 +1,12 @@
-import './App.css';
-
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Pricing from './Pricing'; // ✅ default import
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import Pricing from './Pricing';
 import './App.css';
 
 function Home() {
   const [url, setUrl] = useState('');
   const [file, setFile] = useState(null);
-  const [result, setResult] = useState(null);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,10 +19,20 @@ function Home() {
         method: 'POST',
         body: formData,
       });
+
       const data = await res.json();
-      setResult(data);
+      navigate('/threat-report', { state: { result: data } });
     } catch (err) {
-      setResult({ message: 'Error checking URL.' });
+      console.error(err);
+      navigate('/threat-report', {
+        state: {
+          result: {
+            message: 'Error checking URL.',
+            score: 0,
+            fact: 'Phishing costs organizations billions each year.',
+          },
+        },
+      });
     }
   };
 
@@ -50,8 +58,6 @@ function Home() {
           <input type="file" onChange={(e) => setFile(e.target.files[0])} />
           <button type="submit">🔍 Check Safety</button>
         </form>
-
-        {result && <p className="result">{result.message}</p>}
       </section>
       <footer>
         <div className="footer-content">
@@ -70,9 +76,12 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/threat-report" element={<ThreatReport />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
+
+import ThreatReport from './ThreatReport';
