@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
 import './App.css';
 
-function App() {
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import Pricing from './Pricing'; // ✅ default import
+import './App.css';
+
+function Home() {
   const [url, setUrl] = useState('');
   const [file, setFile] = useState(null);
   const [result, setResult] = useState(null);
@@ -26,17 +30,15 @@ function App() {
 
   return (
     <div className="app">
-      {/* Hero Section */}
       <section className="hero">
         <div className="navbar">
           <div className="logo">safeclick.app</div>
-          <button className="btn-outline">Pricing</button>
+          <Link to="/pricing" className="btn-outline">Pricing</Link>
         </div>
 
         <h1>Worried about a sketchy site?</h1>
         <p>Paste the URL or insert the screenshot below to check if it's safe</p>
 
-        {/* Input Form */}
         <form onSubmit={handleSubmit} className="scan-form">
           <input
             type="text"
@@ -49,10 +51,20 @@ function App() {
           <button type="submit">🔍 Check Safety</button>
         </form>
 
-        {/* Result */}
         {result && <p className="result">{result.message}</p>}
       </section>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/pricing" element={<Pricing />} />
+      </Routes>
+    </Router>
   );
 }
 
