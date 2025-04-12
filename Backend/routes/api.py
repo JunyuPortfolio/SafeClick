@@ -18,14 +18,39 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def validate_llm_output(llm_text):
     """
     Validates and sanitizes the LLM output to prevent potential security issues.
-    
-    Args:
-        llm_text (str): The text output from the LLM
+    url = data.get("url")
+
+    if not url:
+        return jsonify({"error": "No URL provided"}), 400
         
-    Returns:
-        str: Sanitized output
-    """
-    # Check if the text is valid
+    # URL validation
+    url = url.strip()
+    
+    # Check URL length to prevent DoS
+    if len(url) > 2048:
+        return jsonify({"error": "URL exceeds maximum allowed length"}), 400
+        
+    # Basic protocol validation
+    if not url.startswith(('http://', 'https://')):
+        return jsonify({"error": "URL must use HTTP or HTTPS protocol"}), 400
+    
+    # Extract and validate domain
+    try:
+        domain_part = url.split('://', 1)[1].split('/', 1)[0].split(':', 1)[0]  # Handle ports
+        
+        # Check if domain is an IP address
+        ip_pattern = r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+        is_ip = bool(re.match(ip_pattern, domain_part))
+        
+        # If not an IP, ensure it has a valid domain format
+        if not is_ip and (not domain_part or '.' not in domain_part or len(domain_part.split('.')) < 2):
+            return jsonify({"error": "Invalid domain in URL"}), 400
+    except Exception:
+        return jsonify({"error": "Invalid URL format"}), 400
+
+    try:
+        # Extract features & run ML prediction
+        features = extract_features_from_url(url)
     if not isinstance(llm_text, str):
         return "Invalid LLM response format"
     
@@ -87,11 +112,11 @@ WHITELIST = {
         "llm_report": llm_summary
     }
 
-@api_bp.route("/check_url", methods=["POST"])
-def check_url():
-    url = request.form.get("url")
-    if not url:
-        return jsonify({"error": "No URL provided"}), 400
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
+    else:
+        return jsonify({'error': 'Invalid image file type'}), 400
 
     try:
         result = check_url_logic(url)
