@@ -49,6 +49,20 @@ function App() {
           <strong>Result:</strong> {result.message}
         </div>
       )}
+      <section id="pricing-div">
+        <h2>Pricing</h2>
+        <div class="pricing-child">
+          <h3>Free</h3>
+          <p>URL Scan</p>
+          <p>File Scan</p>
+        </div>
+        <div class="pricing-child">
+          <p>Pro Plan: $20/month</p>
+        </div>
+        <div class="">  
+          <p>Enterprise Plan: $50/month</p>
+        </div>
+      </section>
     </div>
   );
 }
