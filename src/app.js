@@ -5,21 +5,65 @@ import ThreatReport from './ThreatReport';
 import Terms from './Terms';
 import './App.css';
 
-
+// ================== HomePage Component ==================
 function HomePage() {
   const [url, setUrl] = useState('');
   const [file, setFile] = useState(null);
   const navigate = useNavigate();
 
-  const handleCheck = (e) => {
-    e.preventDefault(); // Prevent default form submission
-    const isValidURL = /^https?:\/\/[^\s$.?#].[^\s]*$/.test(url);
-    navigate('/threat-report', {
-      state: {
-        url: isValidURL ? url : null,
-        file: file,
-      },
-    });
+  // Automatically add http:// if missing
+  const normalizeUrl = (inputUrl) => {
+    if (!/^https?:\/\//i.test(inputUrl)) {
+      return 'http://' + inputUrl;
+    }
+    return inputUrl;
+  };
+
+  const handleCheck = async (e) => {
+    e.preventDefault();
+
+    let result = null;
+    const trimmedUrl = url.trim();
+    const hasUrl = trimmedUrl !== '';
+    const hasFile = file !== null;
+
+    try {
+      if (hasUrl) {
+        const normalized = normalizeUrl(trimmedUrl);
+
+        const response = await fetch("http://127.0.0.1:5000/api/check_url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: normalized }),
+        });
+
+        result = await response.json();
+      } else if (hasFile) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await fetch("http://127.0.0.1:5000/api/upload_image", {
+          method: "POST",
+          body: formData,
+        });
+
+        result = await response.json();
+      } else {
+        alert("Please enter a valid URL or upload an image.");
+        return;
+      }
+
+      navigate('/threat-report', {
+        state: {
+          confidence: result.confidence || 0,
+          report: result.report || "No report generated.",
+        },
+      });
+
+    } catch (error) {
+      console.error("Error checking URL or file:", error);
+      alert("There was an error checking the input. Please try again.");
+    }
   };
 
   return (
@@ -38,14 +82,14 @@ function HomePage() {
           <input
             className="input-box"
             type="text"
-            placeholder="Paste a URL"
+            placeholder="Paste a URL (e.g. google.com)"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            required
           />
           <input
             className="file-input"
             type="file"
+            accept="image/*"
             onChange={(e) => setFile(e.target.files[0])}
           />
           <br />
@@ -53,6 +97,9 @@ function HomePage() {
             🔍 Check Safety
           </button>
         </form>
+        <small style={{ color: '#888' }}>
+          Tip: You can enter “example.com” and we’ll handle the rest.
+        </small>
       </main>
 
       <footer>
@@ -66,6 +113,7 @@ function HomePage() {
   );
 }
 
+// ================== App Component ==================
 function App() {
   return (
     <Router>

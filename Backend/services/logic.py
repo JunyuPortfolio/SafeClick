@@ -92,7 +92,7 @@ Give your assessment now.
 
 
     payload = {
-        "model": "deepseek-r1:32b",
+        "model": "deepseek-r1:latest",
         "prompt": prompt,
         "stream": False
     }
