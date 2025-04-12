@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import Pricing from './Pricing';
 import './App.css';
 
-function App() {
+function Home() {
   const [url, setUrl] = useState('');
   const [file, setFile] = useState(null);
-  const [result, setResult] = useState(null);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,26 +19,34 @@ function App() {
         method: 'POST',
         body: formData,
       });
+
       const data = await res.json();
-      setResult(data);
+      navigate('/threat-report', { state: { result: data } });
     } catch (err) {
-      setResult({ message: 'Error checking URL.' });
+      console.error(err);
+      navigate('/threat-report', {
+        state: {
+          result: {
+            message: 'Error checking URL.',
+            score: 0,
+            fact: 'Phishing costs organizations billions each year.',
+          },
+        },
+      });
     }
   };
 
   return (
     <div className="app">
-      {/* Hero Section */}
       <section className="hero">
         <div className="navbar">
           <div className="logo">safeclick.app</div>
-          <button className="btn-outline">Pricing</button>
+          <Link to="/pricing" className="btn-outline">Pricing</Link>
         </div>
 
         <h1>Worried about a sketchy site?</h1>
         <p>Paste the URL or insert the screenshot below to check if it's safe</p>
 
-        {/* Input Form */}
         <form onSubmit={handleSubmit} className="scan-form">
           <input
             type="text"
@@ -48,12 +58,23 @@ function App() {
           <input type="file" onChange={(e) => setFile(e.target.files[0])} />
           <button type="submit">🔍 Check Safety</button>
         </form>
-
-        {/* Result */}
-        {result && <p className="result">{result.message}</p>}
       </section>
     </div>
   );
 }
 
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/threat-report" element={<ThreatReport />} />
+      </Routes>
+    </Router>
+  );
+}
+
 export default App;
+
+import ThreatReport from './ThreatReport';
