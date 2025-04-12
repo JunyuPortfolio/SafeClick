@@ -53,6 +53,13 @@ function Home() {
 
         {result && <p className="result">{result.message}</p>}
       </section>
+      <footer>
+        <div className="footer-content">
+          <p>© 2023 safeclick.app</p>
+          <p>Privacy Policy</p>
+          <p>Terms of Service</p>
+        </div>
+      </footer>
     </div>
   );
 }
