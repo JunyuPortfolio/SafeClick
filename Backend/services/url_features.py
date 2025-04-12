@@ -17,12 +17,29 @@ FEATURE_NAMES = [
     "Links_pointing_to_page", "Statistical_report"
 ]
 
+# ✅ Whitelist of known safe domains
+WHITELIST = {
+    "google.com",
+    "wikipedia.org",
+    "github.com",
+    "microsoft.com",
+    "apple.com",
+    "amazon.com",
+    # Add more if needed
+}
+
 def extract_features_from_url(url):
     features = []
     parsed = urlparse(url)
     domain = parsed.netloc
+    domain_info = tldextract.extract(url)
+    full_domain = f"{domain_info.domain}.{domain_info.suffix}"
     path = parsed.path
-    full_domain = f"{tldextract.extract(url).domain}.{tldextract.extract(url).suffix}"
+
+    # ✅ Whitelist override
+    if full_domain in WHITELIST:
+        print(f"[INFO] {full_domain} is whitelisted. Skipping feature extraction.")
+        return [-1] * len(FEATURE_NAMES)
 
     # Request page content
     try:
@@ -186,7 +203,7 @@ def extract_features_from_url(url):
     except:
         features.append(1)
 
-       # 26. Web Traffic (simulate with reachability check)
+    # 26. Web Traffic (simulate with reachability check)
     try:
         traffic = requests.get(f"https://www.{full_domain}", timeout=5)
         features.append(1 if traffic.status_code == 200 else -1)

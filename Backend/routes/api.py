@@ -8,6 +8,8 @@ from PIL import Image
 import pytesseract
 import time
 import re
+from urllib.parse import urlparse
+import tldextract
 from flask_cors import CORS
 
 api_bp = Blueprint("api", __name__)
@@ -17,8 +19,31 @@ UPLOAD_FOLDER = 'uploads'
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Reusable logic for checking a URL
+# ✅ Define whitelist
+WHITELIST = {
+    "google.com",
+    "wikipedia.org",
+    "github.com",
+    "apple.com",
+    "microsoft.com",
+    "amazon.com"
+}
+
+# ✅ Reusable logic for checking a URL
 def check_url_logic(url: str):
+    domain_info = tldextract.extract(url)
+    full_domain = f"{domain_info.domain}.{domain_info.suffix}"
+
+    if full_domain in WHITELIST:
+        return {
+            "url": url,
+            "features": dict(zip(FEATURE_NAMES, [-1] * len(FEATURE_NAMES))),
+            "prediction": "legitimate",
+            "confidence": "100",
+            "llm_report": f"The domain {url} is in the trusted whitelist and considered safe."
+        }
+
+    # Otherwise, proceed with feature extraction and prediction
     features = extract_features_from_url(url)
     result = predict_from_features(features)
     feature_dict = dict(zip(FEATURE_NAMES, features))
@@ -44,7 +69,6 @@ def check_url():
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 def allowed_image_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
