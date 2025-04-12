@@ -6,6 +6,7 @@ import tldextract
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from datetime import datetime
+import ipaddress
 
 FEATURE_NAMES = [
     "having_IP_Address", "URL_Length", "Shortening_Service", "having_At_Symbol",
@@ -17,22 +18,86 @@ FEATURE_NAMES = [
     "Links_pointing_to_page", "Statistical_report"
 ]
 
-# Blocklist for potentially malicious domains
-DOMAIN_BLOCKLIST = [
-    'example-malicious-domain.com',
-    'evil-domain.com',
-    # Add more as needed
-]
-
-# Maximum number of external requests allowed per function call
-MAX_EXTERNAL_REQUESTS = 5
-
 def is_url_safe(url):
     """
-    Validate if a URL is safe to process.
-    Returns (is_safe, reason) tuple.
+    Validates if a URL is safe to make requests to.
+    Checks for proper URL format, allowed schemes, and non-private IPs.
+    
+    Returns:
+        bool: True if URL is considered safe, False otherwise
     """
-    # Check if URL is valid
+    try:
+        # Parse the URL
+        parsed = urlparse(url)
+        
+        # Check scheme (only http and https allowed)
+        if parsed.scheme not in ['http', 'https']:
+            return False
+        
+        # Check if domain is valid
+        if not parsed.netloc:
+            return False
+        
+        # Get domain without port
+        domain = parsed.netloc.split(':')[0]
+        
+        # Check for localhost references
+        if domain in ['localhost', '127.0.0.1', '::1'] or domain.startswith('127.'):
+            return False
+        
+        # Check if domain is an IP address
+        try:
+            ip = ipaddress.ip_address(domain)
+            # Check if IP is private, loopback, link-local, etc.
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved:
+                return False
+        except ValueError:
+            # Not an IP address, continue with domain validation
+            pass
+                
+        return True
+    except Exception:
+        return False
+
+def safe_request_get(url, **kwargs):
+    """
+    Makes a safe HTTP GET request after validating the URL.
+    
+    Args:
+        url (str): The URL to request
+        **kwargs: Additional arguments to pass to requests.get
+        
+    Returns:
+        Response or None: The response if successful and URL was safe, None otherwise
+    """
+    if not is_url_safe(url):
+        return None
+    
+    try:
+        return requests.get(url, **kwargs)
+    except Exception:
+        return None
+
+def extract_features_from_url(url):
+    features = []
+    parsed = urlparse(url)
+    domain = parsed.netloc
+    path = parsed.path
+    full_domain = f"{tldextract.extract(url).domain}.{tldextract.extract(url).suffix}"
+
+    # Request page content - FIXED: Added URL validation before making request
+    try:
+        response = safe_request_get(url, timeout=5)
+        if response:
+            html = response.text
+            soup = BeautifulSoup(html, 'html.parser')
+        else:
+            html = ""
+            soup = None
+    except:
+        html = ""
+        soup = None
+
     if not url or not isinstance(url, str):
         return False, "URL must be a non-empty string"
         
@@ -144,18 +209,18 @@ def extract_features_from_url(url):
     # 2. URL Length
     features.append(1 if len(url) >= 75 else 0 if len(url) >= 54 else -1)
 
-    # 3. Shortening service
-    features.append(1 if re.search(r"(bit\.ly|goo\.gl|tinyurl|ow\.ly|t\.co)", url) else -1)
 
-    # 4. '@' symbol
-    features.append(1 if "@" in url else -1)
+    # 18. Abnormal URL
+    features.append(1 if domain not in url else -1)
 
-    # 5. Double slash redirect
-    features.append(1 if url.rfind('//') > 6 else -1)
+    # 19. Redirect count - FIXED: Added URL validation before making request
+    try:
+        r = safe_request_get(url, timeout=5)
+        features.append(1 if r and len(r.history) > 3 else 0 if r and len(r.history) else -1)
+    except:
+        features.append(-1)
 
-    # 6. Prefix/Suffix (hyphen)
-    features.append(1 if '-' in domain else -1)
-
+    # 20. onmouseover
     # 7. Subdomain
     subdomain_count = domain.count('.')
         features.append(-1)
@@ -182,34 +247,38 @@ def extract_features_from_url(url):
             total = 0
             external = 0
             for tag in soup.find_all(['img', 'script'], src=True):
-                total += 1
-                if domain not in tag['src']:
-                    external += 1
-            ratio = external / total if total else 0
-            features.append(1 if ratio > 0.61 else 0 if 0.22 < ratio <= 0.61 else -1)
-        else:
-            features.append(1)  # Default to suspicious if no soup
+        features.append(-1)
+    except:
+        features.append(1)
+
+    # 26. Web Traffic (simulate with reachability check) - FIXED: Added URL validation
+    try:
+        traffic_url = f"https://www.{full_domain}"
+        traffic = safe_request_get(traffic_url, timeout=5)
+        features.append(1 if traffic and traffic.status_code == 200 else -1)
     except:
         features.append(-1)
 
-    # 14. Anchor tags pointing elsewhere
-    try:
+    # 27. Page Rank (simulate with number of anchor tags with hrefs)
         if soup:
             anchors = soup.find_all('a', href=True)
-            total = len(anchors)
-            unsafe = sum(1 for a in anchors if "#" in a['href'] or "javascript" in a['href'].lower())
-            ratio = unsafe / total if total else 0
-            features.append(1 if ratio > 0.67 else 0 if 0.31 < ratio <= 0.67 else -1)
-        else:
-            features.append(1)  # Default to suspicious if no soup
+        features.append(1 if len(anchors) > 50 else 0 if 10 < len(anchors) <= 50 else -1)
     except:
         features.append(-1)
 
-    # 15. Meta/script/link tags external
+    # 28. Google Index (try searching site:domain using Google) - FIXED: Added URL validation
     try:
-        if soup:
-            tags = soup.find_all(['meta', 'script', 'link'])
-            total = len(tags)
+        search_url = f"https://www.google.com/search?q=site:{full_domain}"
+        if is_url_safe(search_url):
+            headers = {"User-Agent": "Mozilla/5.0"}
+            result = safe_request_get(search_url, headers=headers, timeout=5)
+            features.append(1 if result and "did not match any documents" not in result.text else -1)
+        else:
+            features.append(-1)
+    except:
+        features.append(-1)
+
+    # 29. Links pointing to page (simulate by counting backlinks in soup)
             unsafe = sum(1 for tag in tags if domain not in str(tag))
             ratio = unsafe / total if total else 0
             features.append(1 if ratio > 0.81 else 0 if 0.17 < ratio <= 0.81 else -1)
@@ -219,11 +288,11 @@ def extract_features_from_url(url):
         features.append(-1)
 
     # 16. SFH (server form handler)
-    try:
-        if soup:
-            forms = soup.find_all('form')
-            for f in forms:
-                if f.get('action') in ["", "about:blank"]:
+        features.append(1 if any(b in url for b in blacklist) else -1)
+    except:
+        features.append(-1)
+
+    return features
                     features.append(1)
                     break
                 elif domain not in f.get('action', ''):
