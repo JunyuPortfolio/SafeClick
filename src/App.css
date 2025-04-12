@@ -1,238 +1,229 @@
-/* General Styles */
+/* Global */
 body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f7fbfe;
-    color: #1a1a1a;
-  }
-  
-  /* Navbar */
-  .navbar {
-    background-color: #def0fc;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 24px;
-  }
-  
-  .logo {
-    font-weight: 700;
-    font-size: 20px;
-  }
-  
-  .btn-outline {
-    border: 2px solid #1a1a1a;
-    padding: 8px 16px;
-    border-radius: 8px;
-    background-color: white;
-    color: black;
-    font-weight: 600;
-    text-decoration: none;
-  }
-  
-  .btn-outline:hover {
-    background-color: #1a1a1a;
-    color: white;
-  }
-  
-/* Hero Section (Home page) - UPDATED */
-.hero {
-    text-align: center;
-    padding: 100px 20px;
-    max-width: 900px;
-    margin: 0 auto;
-    font-size: 20px;
-  }
-  
-  /* Make header bolder and larger */
-  .hero h1 {
-    font-size: 40px;
-    margin-bottom: 16px;
-    font-weight: 700;
-  }
-  
-  /* Subheading paragraph */
-  .hero p {
-    font-size: 22px;
-    margin-bottom: 36px;
-    color: #444;
-  }
-  
-  /* Scan Form - UPDATED */
-  .scan-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 18px;
-  }
-  
-  .scan-form input[type="text"],
-  .scan-form input[type="file"] {
-    padding: 14px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    width: 340px;
-    font-size: 16px;
-  }
-  
-  .scan-form button {
-    background-color: #4a7cff;
-    color: white;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 10px;
-    font-weight: bold;
-    font-size: 16px;
-    cursor: pointer;
-  }
-  
-  .scan-form button:hover {
-    background-color: #345be1;
-  }
-  
-  
-  .result {
-    margin-top: 20px;
-    font-weight: bold;
-  }
-  
-  
-  .pricing-page {
-    padding: 2rem;
-    text-align: center;
-  }
-  
-  .pricing-title {
-    margin: 2rem 0 1rem;
-    font-size: 2rem;
-    font-weight: 600;
-    color: #333;
-  }
-  
-  .pricing-table-wrapper {
-    overflow-x: auto;
-    display: flex;
-    justify-content: center;
-  }
-  
-  .pricing-table {
-    width: 100%;
-    max-width: 1000px;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  }
-  
-  .pricing-table th {
-    background-color: #162b47;
-    color: white;
-    padding: 1.25rem;
-    font-size: 1rem;
-    white-space: nowrap;
-  }
-  
-  .pricing-table td {
-    padding: 1rem;
-    font-size: 1rem;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .price-row td {
-    background-color: #eef6ff;
-    font-weight: bold;
-  }
-  
-  .signup-row td {
-    padding: 1rem;
-  }
-  
-  .signup-btn {
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 0.6rem 1.2rem;
-    cursor: pointer;
-    font-weight: 600;
-    transition: 0.2s ease-in-out;
-  }
-  
-  .signup-btn:hover {
-    background-color: #2563eb;
-  }
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f7f9fc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-  .footer-content{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 40px;
-    background-color: #def0fc;
-  }
-  .report-container {
-    text-align: center;
-    padding: 3rem;
-  }
-  
-  .alert-box {
-    background-color: #fce788;
-    padding: 1rem;
-    border-radius: 8px;
-    margin: 1.5rem auto;
-    width: 60%;
-  }
-  
-  .threat-description {
-    margin: 2rem auto;
-    max-width: 60%;
-    line-height: 1.6;
-    font-size: 1.1rem;
-  }
-  
-  .fact-box {
-    background-color: #fce788;
-    padding: 1rem 2rem;
-    border-radius: 20px;
-    display: inline-block;
-    font-size: 1.1rem;
-  }
-  .report-container {
-    text-align: center;
-    padding: 40px 20px;
-    font-family: 'Segoe UI', sans-serif;
-    color: #222;
-  }
-  
-  .report-title {
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: 30px;
-  }
-  
-  .confidence-box {
-    padding: 15px 25px;
-    border-radius: 12px;
-    color: #222;
-    font-weight: 500;
-    display: inline-block;
-    margin-bottom: 30px;
-  }
-  
-  .report-description {
-    font-size: 1.2rem;
-    max-width: 800px;
-    margin: 0 auto 40px;
-  }
-  
-  .fun-fact {
-    background-color: #fff3bf;
-    padding: 15px 25px;
-    border-radius: 20px;
-    font-size: 1rem;
-    font-weight: 500;
-    max-width: 700px;
-    margin: 0 auto;
-  }
-  
-  
+/* App container */
+.app-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header */
+.app-header {
+  background-color: #d9ecfa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.pricing-button {
+  background-color: white;
+  border: 2px solid black;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  color: black;
+}
+
+.pricing-button:hover {
+  background-color: #e6e6e6;
+}
+
+/* Main content */
+.main-content {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.main-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.main-subtitle {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.input-box,
+.file-input {
+  width: 300px;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.check-button {
+  background-color: #5c6ff9;
+  color: white;
+  font-size: 1rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  margin-top: 1rem;
+  cursor: pointer;
+}
+
+.check-button:hover {
+  background-color: #3e4ee0;
+}
+
+/* Pricing Page */
+.pricing-page {
+  padding: 2rem;
+  text-align: center;
+}
+
+.pricing-title {
+  margin: 2rem 0 1rem;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.pricing-table-wrapper {
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.pricing-table {
+  width: 100%;
+  max-width: 1000px;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.pricing-table th {
+  background-color: #162b47;
+  color: white;
+  padding: 1.25rem;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.pricing-table td {
+  padding: 1rem;
+  font-size: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.price-row td {
+  background-color: #eef6ff;
+  font-weight: bold;
+}
+
+.signup-row td {
+  padding: 1rem;
+}
+
+.signup-btn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease-in-out;
+}
+
+.signup-btn:hover {
+  background-color: #2563eb;
+}
+
+/* Footer */
+footer.footer-content {
+  margin-top: auto;
+  background-color: #d9ecfa;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+/* Threat Report */
+.report-container {
+  text-align: center;
+  padding: 40px 20px;
+  font-family: 'Segoe UI', sans-serif;
+  color: #222;
+}
+
+.report-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+.confidence-box {
+  padding: 15px 25px;
+  border-radius: 12px;
+  color: #222;
+  font-weight: 500;
+  display: inline-block;
+  margin-bottom: 30px;
+}
+
+.report-description {
+  font-size: 1.2rem;
+  max-width: 800px;
+  margin: 0 auto 40px;
+}
+
+.fun-fact {
+  background-color: #fff3bf;
+  padding: 15px 25px;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: #f1f3f5;
+  border: 2px solid #444;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.back-button:hover {
+  background-color: #dee2e6;
+  transform: scale(1.05);
+}
+
+.logo-img {
+  height: 50px;
+  object-fit: contain;
+  margin-left: 20px;
+}
