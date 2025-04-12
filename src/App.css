@@ -1,0 +1,134 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #fdfdfd;
+    color: #333;
+    
+  }
+
+
+  
+  .app {
+    text-align: center;
+  }
+  
+  /* Navbar */
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background-color: #d4f0fc;
+  }
+  
+  .logo {
+    font-weight: bold;
+  }
+  
+  .btn-outline {
+    background: none;
+    border: 2px solid #333;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  /* Hero */
+  .hero {
+    background: #f2fbff;
+    padding: 3rem 1rem;
+  }
+  
+  .hero h1 {
+    font-size: 1.8rem;
+  }
+  
+  .hero .form {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .form input,
+  .form button {
+    padding: 0.6rem 1rem;
+    border-radius: 5px;
+    border: 1px solid #aaa;
+    width: 80%;
+    max-width: 400px;
+  }
+  
+  .result-box {
+    background: #ffecb3;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+  
+  /* Threat Report */
+  .threat-report {
+    padding: 2rem 1rem;
+    background: #ffffff;
+    border-top: 5px solid #82cffa;
+  }
+  
+  .threat-report .highlight {
+    font-weight: bold;
+    margin: 1rem 0;
+  }
+  
+  .stat-box {
+    background: #ffecb3;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 5px;
+  }
+  
+  /* Pricing */
+  .pricing {
+    padding: 3rem 1rem;
+    background: #e3f4fb;
+  }
+  
+  .pricing-cards {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+  
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    width: 200px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card h3 {
+    margin-bottom: 0.5rem;
+  }
+  
+  .card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .card ul li {
+    padding: 0.25rem 0;
+  }
+  
+  .card .price {
+    margin-top: 1rem;
+    font-weight: bold;
+  }
+  
+  .card.highlighted {
+    background-color: #c5ecff;
+    border: 2px solid #00aaff;
+  }
+  
