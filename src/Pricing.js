@@ -19,7 +19,7 @@ const Pricing = () => {
   return (
     <div className="pricing-page">
       <div className="navbar">
-        <div className="logo">safeclick.app</div>
+       <h2 style={{ fontWeight: 'bold' }}>Safe Click</h2>
         <Link to="/" className="btn-outline">Back to Home</Link>
       </div>
 

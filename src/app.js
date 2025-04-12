@@ -40,7 +40,7 @@ function Home() {
     <div className="app">
       <section className="hero">
         <div className="navbar">
-          <div className="logo">safeclick.app</div>
+          <h2 style={{ fontWeight: 'bold' }}>Safe Click</h2>
           <Link to="/pricing" className="btn-outline">Pricing</Link>
         </div>
 
