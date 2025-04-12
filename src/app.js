@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Pricing from './Pricing';
 import './App.css';
+import Terms from './Terms';
 
 function Home() {
   const [url, setUrl] = useState('');
@@ -61,9 +62,11 @@ function Home() {
       </section>
       <footer>
         <div className="footer-content">
-          <p>© 2023 safeclick.app</p>
+          <p>© 2023 safeclick</p>
+          <Link to="/Terms"><p>Terms of Service</p></Link>
+          <a>Terms of Service</a>
           <p>Privacy Policy</p>
-          <p>Terms of Service</p>
+          
         </div>
       </footer>
     </div>
@@ -77,6 +80,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/threat-report" element={<ThreatReport />} />
+        <Route path="/terms" element={<Terms />} />
       </Routes>
     </Router>
   );
