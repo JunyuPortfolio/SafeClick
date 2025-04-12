@@ -1,69 +1,70 @@
-import React, { useState } from 'react';
+import './App.css';
 
-function App() {
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import Pricing from './Pricing'; // ✅ default import
+import './App.css';
+
+function Home() {
   const [url, setUrl] = useState('');
   const [file, setFile] = useState(null);
   const [result, setResult] = useState(null);
 
-  const handleUrlChange = (e) => setUrl(e.target.value);
-  const handleFileChange = (e) => setFile(e.target.files[0]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const formData = new FormData();
     formData.append('url', url);
     if (file) formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:5000/api/check', {
+      const res = await fetch('http://localhost:5000/api/check', {
         method: 'POST',
         body: formData,
       });
-
-      const data = await response.json();
+      const data = await res.json();
       setResult(data);
     } catch (err) {
-      console.error(err);
-      setResult({ status: 'error', message: 'Something went wrong.' });
+      setResult({ message: 'Error checking URL.' });
     }
   };
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1>🔒 SafeClick URL Checker</h1>
-      <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
-        <div>
-          <label>Enter URL:</label><br />
-          <input type="text" value={url} onChange={handleUrlChange} />
+    <div className="app">
+      <section className="hero">
+        <div className="navbar">
+          <div className="logo">safeclick.app</div>
+          <Link to="/pricing" className="btn-outline">Pricing</Link>
         </div>
-        <div>
-          <label>Upload Screenshot:</label><br />
-          <input type="file" onChange={handleFileChange} />
-        </div>
-        <button type="submit">Check Safety</button>
-      </form>
 
-      {result && (
-        <div>
-          <strong>Result:</strong> {result.message}
-        </div>
-      )}
-      <section id="pricing-div">
-        <h2>Pricing</h2>
-        <div class="pricing-child">
-          <h3>Free</h3>
-          <p>URL Scan</p>
-          <p>File Scan</p>
-        </div>
-        <div class="pricing-child">
-          <p>Pro Plan: $20/month</p>
-        </div>
-        <div class="">  
-          <p>Enterprise Plan: $50/month</p>
-        </div>
+        <h1>Worried about a sketchy site?</h1>
+        <p>Paste the URL or insert the screenshot below to check if it's safe</p>
+
+        <form onSubmit={handleSubmit} className="scan-form">
+          <input
+            type="text"
+            placeholder="Paste a URL"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            required
+          />
+          <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+          <button type="submit">🔍 Check Safety</button>
+        </form>
+
+        {result && <p className="result">{result.message}</p>}
       </section>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/pricing" element={<Pricing />} />
+      </Routes>
+    </Router>
   );
 }
 
