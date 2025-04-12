@@ -162,7 +162,6 @@ body {
   .signup-btn:hover {
     background-color: #2563eb;
   }
-<<<<<<< HEAD
 
   .footer-content{
     display: flex;
@@ -171,7 +170,6 @@ body {
     padding: 20px 40px;
     background-color: #def0fc;
   }
-=======
   .report-container {
     text-align: center;
     padding: 3rem;
@@ -237,5 +235,4 @@ body {
     margin: 0 auto;
   }
   
->>>>>>> ce19b485262683f46e5a569edc27248aeaa47d26
   
