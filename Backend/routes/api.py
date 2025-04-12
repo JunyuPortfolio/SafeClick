@@ -11,14 +11,40 @@ import re
 from urllib.parse import urlparse
 import tldextract
 from flask_cors import CORS
-
-api_bp = Blueprint("api", __name__)
-CORS(api_bp)
-
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+def validate_llm_output(llm_text):
+    """
+    Validates and sanitizes the LLM output to prevent potential security issues.
+    
+    Args:
+        llm_text (str): The text output from the LLM
+        
+    Returns:
+        str: Sanitized output
+    """
+    # Check if the text is valid
+    if not isinstance(llm_text, str):
+        return "Invalid LLM response format"
+    
+    if len(llm_text) > 10000:  # Maximum reasonable size
+        return "LLM response too large"
+    
+    # Basic sanitization - remove any potentially harmful content
+    sanitized = re.sub(r'<script.*?>.*?</script>', '', llm_text, flags=re.DOTALL)
+    sanitized = re.sub(r'<iframe.*?>.*?</iframe>', '', sanitized, flags=re.DOTALL)
+    sanitized = re.sub(r'javascript:', '', sanitized, flags=re.IGNORECASE)
+    
+    # Additional validation could be implemented here based on expected LLM output format
+    
+    return sanitized
+
+@api_bp.route("/check_url", methods=["POST"])
+def check_url():
+    data = request.get_json()
+    url = data.get("url")
 # ✅ Define whitelist
 WHITELIST = {
     "google.com",
@@ -29,21 +55,24 @@ WHITELIST = {
     "amazon.com"
 }
 
-# ✅ Reusable logic for checking a URL
-def check_url_logic(url: str):
-    domain_info = tldextract.extract(url)
-    full_domain = f"{domain_info.domain}.{domain_info.suffix}"
+        # Run LLM logic to get report
+        llm_result = generate_response(url)
+        llm_summary = llm_result.get("summary", "LLM response unavailable")
+        
+        # Validate and sanitize LLM output before using it
+        sanitized_summary = validate_llm_output(llm_summary)
 
-    if full_domain in WHITELIST:
-        return {
+        # Return all in one response
+        return jsonify({
             "url": url,
-            "features": dict(zip(FEATURE_NAMES, [-1] * len(FEATURE_NAMES))),
-            "prediction": "legitimate",
-            "confidence": "100",
-            "llm_report": f"The domain {url} is in the trusted whitelist and considered safe."
-        }
+            "features": feature_dict,
+            "prediction": result["prediction"],
+            "confidence": f"{result['confidence']}%",
+            "llm_report": sanitized_summary
+        })
 
-    # Otherwise, proceed with feature extraction and prediction
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     features = extract_features_from_url(url)
     result = predict_from_features(features)
     feature_dict = dict(zip(FEATURE_NAMES, features))
@@ -87,11 +116,11 @@ def upload_image():
         filename = f"{timestamp}_{secure_filename(file.filename)}"
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
+            if os.path.exists(filepath):
+                os.remove(filepath)
 
-        try:
-            # OCR
-            image = Image.open(filepath)
-            text = pytesseract.image_to_string(image)
+    else:
+        return jsonify({'error': 'Invalid image file type'}), 400
 
             # Extract URLs
             url_pattern = r'((https?:\/\/)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/\S*)?)'
