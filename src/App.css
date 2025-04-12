@@ -162,4 +162,12 @@ body {
   .signup-btn:hover {
     background-color: #2563eb;
   }
+
+  .footer-content{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background-color: #def0fc;
+  }
   
