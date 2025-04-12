@@ -24,7 +24,6 @@ const ThreatReport = () => {
 
   return (
     <div className="App" style={{ padding: '2rem', minHeight: '100vh', backgroundColor: '#f9fcff', position: 'relative' }}>
-      {/* Back to Home - top right corner */}
       <button
         onClick={() => navigate('/')}
         style={{
@@ -57,7 +56,7 @@ const ThreatReport = () => {
           fontSize: '1.2rem',
         }}
       >
-        <span role="img" aria-label="warning">⚠️</span> {report} confidence score {confidence}%
+        <span role="img" aria-label="warning">⚠️</span> {report} — Confidence Score: {confidence}%
       </div>
 
       <p style={{ fontSize: '1.1rem', maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
