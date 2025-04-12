@@ -5,13 +5,12 @@ import ThreatReport from './ThreatReport';
 import Terms from './Terms';
 import './App.css';
 
-// ================== HomePage Component ==================
 function HomePage() {
   const [url, setUrl] = useState('');
   const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Automatically add http:// if missing
   const normalizeUrl = (inputUrl) => {
     if (!/^https?:\/\//i.test(inputUrl)) {
       return 'http://' + inputUrl;
@@ -21,23 +20,49 @@ function HomePage() {
 
   const handleCheck = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    let result = null;
     const trimmedUrl = url.trim();
     const hasUrl = trimmedUrl !== '';
     const hasFile = file !== null;
+    let result = null;
 
     try {
       if (hasUrl) {
         const normalized = normalizeUrl(trimmedUrl);
-
         const response = await fetch("http://127.0.0.1:5000/api/check_url", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: normalized }),
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({ url: normalized }).toString(),
         });
 
-        result = await response.json();
+        const text = await response.text();
+        console.log("Raw response:", text);
+        try {
+          result = JSON.parse(text);
+        } catch (err) {
+          console.error("Failed to parse JSON:", err);
+          alert("Server response was not valid JSON:\n" + text);
+          return;
+        }
+
+        if (result.error) {
+          alert("Server error: " + result.error);
+          return;
+        }
+
+        navigate('/threat-report', {
+          state: {
+            confidence: result.confidence || "N/A",
+            report: result.llm_report || result.prediction || result.message || "No report generated.",
+            raw: result,
+            url: result.url || normalized,
+            source: "Manual URL"
+          },
+        });
+
       } else if (hasFile) {
         const formData = new FormData();
         formData.append("file", file);
@@ -47,22 +72,42 @@ function HomePage() {
           body: formData,
         });
 
-        result = await response.json();
+        const text = await response.text();
+        console.log("Raw response:", text);
+        try {
+          result = JSON.parse(text);
+        } catch (err) {
+          console.error("Failed to parse JSON:", err);
+          alert("Server response was not valid JSON:\n" + text);
+          return;
+        }
+
+        if (result.error) {
+          alert("Server error: " + result.error);
+          return;
+        }
+
+        navigate('/threat-report', {
+          state: {
+            confidence: result.confidence || "N/A",
+            report: result.llm_report || result.message || "No report generated.",
+            raw: result,
+            url: result.selected_url || "Unknown",
+            source: "Image Upload"
+          },
+        });
+
       } else {
         alert("Please enter a valid URL or upload an image.");
         return;
       }
-
-      navigate('/threat-report', {
-        state: {
-          confidence: result.confidence || 0,
-          report: result.report || "No report generated.",
-        },
-      });
-
     } catch (error) {
-      console.error("Error checking URL or file:", error);
-      alert("There was an error checking the input. Please try again.");
+      console.error("Fetch failed:", error);
+      alert("There was an error checking the input.");
+    } finally {
+      setLoading(false);
+      setUrl('');
+      setFile(null);
     }
   };
 
@@ -93,8 +138,8 @@ function HomePage() {
             onChange={(e) => setFile(e.target.files[0])}
           />
           <br />
-          <button className="check-button" type="submit">
-            🔍 Check Safety
+          <button className="check-button" type="submit" disabled={loading}>
+            {loading ? '⏳ Checking...' : '🔍 Check Safety'}
           </button>
         </form>
         <small style={{ color: '#888' }}>
@@ -113,7 +158,6 @@ function HomePage() {
   );
 }
 
-// ================== App Component ==================
 function App() {
   return (
     <Router>

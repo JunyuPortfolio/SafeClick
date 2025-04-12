@@ -8,40 +8,40 @@ from PIL import Image
 import pytesseract
 import time
 import re
+from flask_cors import CORS
 
 api_bp = Blueprint("api", __name__)
+CORS(api_bp)
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Reusable logic for checking a URL
+def check_url_logic(url: str):
+    features = extract_features_from_url(url)
+    result = predict_from_features(features)
+    feature_dict = dict(zip(FEATURE_NAMES, features))
+    llm_result = generate_response(url)
+    llm_summary = llm_result.get("summary", "LLM response unavailable")
+
+    return {
+        "url": url,
+        "features": feature_dict,
+        "prediction": result["prediction"],
+        "confidence": f"{result['confidence']}%",
+        "llm_report": llm_summary
+    }
+
 @api_bp.route("/check_url", methods=["POST"])
 def check_url():
-    data = request.get_json()
-    url = data.get("url")
-
+    url = request.form.get("url")
     if not url:
         return jsonify({"error": "No URL provided"}), 400
 
     try:
-        # Extract features & run ML prediction
-        features = extract_features_from_url(url)
-        result = predict_from_features(features)
-        feature_dict = dict(zip(FEATURE_NAMES, features))
-
-        # Run LLM logic to get report
-        llm_result = generate_response(url)
-        llm_summary = llm_result.get("summary", "LLM response unavailable")
-
-        # Return all in one response
-        return jsonify({
-            "url": url,
-            "features": feature_dict,
-            "prediction": result["prediction"],
-            "confidence": f"{result['confidence']}%",
-            "llm_report": llm_summary
-        })
-
+        result = check_url_logic(url)
+        return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -69,24 +69,33 @@ def upload_image():
             image = Image.open(filepath)
             text = pytesseract.image_to_string(image)
 
-            # Extract URLs using regex
+            # Extract URLs
             url_pattern = r'((https?:\/\/)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/\S*)?)'
             urls = re.findall(url_pattern, text)
             urls = [match[0] for match in urls if match[0]]
 
-            # Return the response before deleting the file
+            if not urls:
+                return jsonify({
+                    "text": text,
+                    "urls": [],
+                    "message": "No URL found in image."
+                }), 200
+
+            selected_url = urls[0]
+            result = check_url_logic(selected_url)
+
             return jsonify({
                 "text": text,
                 "urls": urls,
-                "file": filename,
-                "message": "Image processed and OCR completed"
+                "selected_url": selected_url,
+                **result,
+                "message": "Image processed, URL scanned, and results returned"
             }), 200
 
         except Exception as e:
-            return jsonify({'error': f"OCR failed: {str(e)}"}), 500
+            return jsonify({'error': f"OCR or LLM failed: {str(e)}"}), 500
 
         finally:
-            # Always delete the file
             if os.path.exists(filepath):
                 os.remove(filepath)
 
