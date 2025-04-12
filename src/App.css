@@ -162,4 +162,69 @@ body {
   .signup-btn:hover {
     background-color: #2563eb;
   }
+  .report-container {
+    text-align: center;
+    padding: 3rem;
+  }
+  
+  .alert-box {
+    background-color: #fce788;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1.5rem auto;
+    width: 60%;
+  }
+  
+  .threat-description {
+    margin: 2rem auto;
+    max-width: 60%;
+    line-height: 1.6;
+    font-size: 1.1rem;
+  }
+  
+  .fact-box {
+    background-color: #fce788;
+    padding: 1rem 2rem;
+    border-radius: 20px;
+    display: inline-block;
+    font-size: 1.1rem;
+  }
+  .report-container {
+    text-align: center;
+    padding: 40px 20px;
+    font-family: 'Segoe UI', sans-serif;
+    color: #222;
+  }
+  
+  .report-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 30px;
+  }
+  
+  .confidence-box {
+    padding: 15px 25px;
+    border-radius: 12px;
+    color: #222;
+    font-weight: 500;
+    display: inline-block;
+    margin-bottom: 30px;
+  }
+  
+  .report-description {
+    font-size: 1.2rem;
+    max-width: 800px;
+    margin: 0 auto 40px;
+  }
+  
+  .fun-fact {
+    background-color: #fff3bf;
+    padding: 15px 25px;
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: 500;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  
   
