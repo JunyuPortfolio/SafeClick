@@ -1,9 +1,64 @@
 import re
 import requests
+import socket
+import ipaddress
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
 OLLAMA_URL = 'http://localhost:11434/api/generate'
+
+def is_url_safe(url):
+    """
+    Check if the URL is safe to access:
+    - Must be HTTP or HTTPS
+    - Must not point to private IP ranges, localhost, or internal network resources
+    """
+    try:
+        parsed_url = urlparse(url)
+        
+        # Ensure the scheme is http or https
+        if parsed_url.scheme not in ['http', 'https']:
+            return False
+        
+        # Extract the hostname
+        hostname = parsed_url.netloc
+        
+        # Remove port number if present
+        if ':' in hostname:
+            hostname = hostname.split(':')[0]
+        
+        # Blocklist check for common internal hostnames
+        blocklist = ['localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]']
+        if hostname.lower() in blocklist or hostname.endswith(('.local', '.internal', '.intranet')):
+            return False
+        
+        # Check if hostname is an IP address
+        try:
+            ip = ipaddress.ip_address(hostname)
+            # Check if IP is private, loopback, etc.
+            if (ip.is_private or ip.is_loopback or ip.is_link_local or 
+                ip.is_multicast or ip.is_reserved or ip.is_unspecified):
+                return False
+        except ValueError:
+            # Not an IP address in the hostname, which is okay
+            pass
+        
+        # Check if hostname is a domain with DNS resolution
+        try:
+            resolved_ip = socket.gethostbyname(hostname)
+            ip_obj = ipaddress.ip_address(resolved_ip)
+            if (ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or 
+                ip_obj.is_multicast or ip_obj.is_reserved or ip_obj.is_unspecified):
+                return False
+        except (socket.gaierror, ValueError):
+            # If DNS resolution fails or IP is invalid, we'll allow it
+            # as it might be a valid hostname that just can't be resolved
+            pass
+        
+        return True
+        
+    except Exception:
+        return False
 
 def duckduckgo_check(domain):
     import requests
@@ -36,8 +91,14 @@ def duckduckgo_check(domain):
 
 
 def fetch_website_text(url):
+    # Ensure URL has a scheme
     if not url.startswith("http://") and not url.startswith("https://"):
         url = "http://" + url  # Add default scheme if missing
+    
+    # Validate URL is safe to access
+    if not is_url_safe(url):
+        return "[Error: Cannot access internal or private network resources]"
+    
     try:
         response = requests.get(url, timeout=5)
         response.raise_for_status()
