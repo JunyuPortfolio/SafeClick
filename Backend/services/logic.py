@@ -97,10 +97,12 @@ Give your assessment now.
         "stream": False
     }
 
-    try:
+    try: 
         response = requests.post(OLLAMA_URL, json=payload)
         response.raise_for_status()
         raw_text = response.json().get("response", "")
         return {"summary": extract_summary(raw_text)}
     except requests.RequestException as e:
         return {"error": str(e)}
+
+#
