@@ -11,13 +11,10 @@ import re
 from urllib.parse import urlparse
 import tldextract
 from flask_cors import CORS
-
-api_bp = Blueprint("api", __name__)
-CORS(api_bp)
-
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 
 # ✅ Define whitelist
 WHITELIST = {
@@ -65,11 +62,39 @@ def check_url():
     if not url:
         return jsonify({"error": "No URL provided"}), 400
 
+
     try:
-        result = check_url_logic(url)
-        return jsonify(result)
+        # Extract features & run ML prediction
+        features = extract_features_from_url(url)
+        result = predict_from_features(features)
+        feature_dict = dict(zip(FEATURE_NAMES, features))
+        
+        # Run LLM logic to get report
+        llm_result = generate_response(url)
+        llm_summary = llm_result.get("summary", "LLM response unavailable")
+        
+        # Validate and sanitize LLM output before using it
+        sanitized_summary = validate_llm_output(llm_summary)
+
+        # Return all in one response
+        return jsonify({
+            "url": url,
+            "features": feature_dict,
+            "prediction": result["prediction"],
+            "confidence": f"{result['confidence']}%",
+            "llm_report": sanitized_summary
+        })
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+# WHITELIST = {
+#     "google.com",
+#     "wikipedia.org",
+#     "github.com",
+#     "apple.com",
+#     "microsoft.com",
+#     "amazon.com"
+# }
 
 def allowed_image_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
@@ -83,24 +108,42 @@ def upload_image():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
+
+def allowed_image_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
+
+def validate_image_content(file):
+    """
+    Verifies that the file content is actually a valid image.
+    This helps prevent malicious file uploads with fake extensions.
+    """
+    try:
+        # Check if it's a valid image by opening it with PIL
+        img = Image.open(file)
+        img.verify()  # Verify it's a valid image
+        file.seek(0)  # Reset file pointer for future operations
+        return True
+    except Exception:
+        return False
+
+@api_bp.route('/upload_image', methods=['POST'])
+def upload_image():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part in request'}), 400
+    else:
+        return jsonify({'error': 'Invalid image file type'}), 400
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
     if file and allowed_image_file(file.filename):
+        # Verify the actual file content before saving
+        if not validate_image_content(file):
+            return jsonify({'error': 'Invalid image content or potential malicious file'}), 400
+            
         timestamp = int(time.time())
         filename = f"{timestamp}_{secure_filename(file.filename)}"
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
-
-        try:
-            # OCR
-            image = Image.open(filepath)
-            text = pytesseract.image_to_string(image)
-
-            # Extract URLs
-            url_pattern = r'((https?:\/\/)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/\S*)?)'
-            urls = re.findall(url_pattern, text)
-            urls = [match[0] for match in urls if match[0]]
-
-            if not urls:
-                return jsonify({
                     "text": text,
                     "urls": [],
                     "message": "No URL found in image."
@@ -121,6 +164,12 @@ def upload_image():
             return jsonify({'error': f"OCR or LLM failed: {str(e)}"}), 500
 
         finally:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
+    else:
+        return jsonify({'error': 'Invalid image file type'}), 400
+
             if os.path.exists(filepath):
                 os.remove(filepath)
 
