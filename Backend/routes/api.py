@@ -15,58 +15,53 @@ UPLOAD_FOLDER = 'uploads'
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def validate_llm_output(llm_text):
-    """
-    Validates and sanitizes the LLM output to prevent potential security issues.
-    Uses a comprehensive approach to ensure outputs can't be used for XSS or other attacks.
-    """
-    if not isinstance(llm_text, str):
-        return "Invalid LLM response format"
-    
-    if len(llm_text) > 10000:  # Maximum reasonable size
-        return "LLM response too large"
-    
-    # First remove any HTML tags completely
-    sanitized = re.sub(r'<[^>]*>', '', llm_text)
-    
-    # Manually escape HTML special characters
-    sanitized = sanitized.replace('&', '&amp;')
-    sanitized = sanitized.replace('<', '&lt;')
-    sanitized = sanitized.replace('>', '&gt;')
-    sanitized = sanitized.replace('"', '&quot;')
-    sanitized = sanitized.replace("'", '&#x27;')
-    try:
-        domain_part = url.split('://', 1)[1].split('/', 1)[0].split(':', 1)[0]  # Handle ports
-        
-        # Check if domain is an IP address
-        ip_pattern = r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)
-    """
-    if not isinstance(llm_text, str):
-        return "Invalid LLM response format"
-    
-    if len(llm_text) > 10000:  # Maximum reasonable size
-    
-    # Check URL length to prevent DoS
-    if len(url) > 2048:
-        return jsonify({"error": "URL exceeds maximum allowed length"}), 400
-        
-    # Basic protocol validation
-    if not url.startswith(('http://', 'https://')):
-        return jsonify({"error": "URL must use HTTP or HTTPS protocol"}), 400
-    
-    # Extract and validate domain
-    try:
-        domain_part = url.split('://', 1)[1].split('/', 1)[0].split(':', 1)[0]  # Handle ports
-        
-        # Check if domain is an IP address
-        ip_pattern = r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
-        is_ip = bool(re.match(ip_pattern, domain_part))
-        
-        # If not an IP, ensure it has a valid domain format
-        if not is_ip and (not domain_part or '.' not in domain_part or len(domain_part.split('.')) < 2):
-            return jsonify({"error": "Invalid domain in URL"}), 400
-    except Exception:
-        return jsonify({"error": "Invalid URL format"}), 400
+
+# ✅ Define whitelist
+WHITELIST = {
+    "google.com",
+    "wikipedia.org",
+    "github.com",
+    "apple.com",
+    "microsoft.com",
+    "amazon.com"
+}
+
+# ✅ Reusable logic for checking a URL
+def check_url_logic(url: str):
+    domain_info = tldextract.extract(url)
+    full_domain = f"{domain_info.domain}.{domain_info.suffix}"
+
+    if full_domain in WHITELIST:
+        time.sleep(3)
+        return {
+            "url": url,
+            "features": dict(zip(FEATURE_NAMES, [-1] * len(FEATURE_NAMES))),
+            "prediction": "legitimate",
+            "confidence": "100",
+            "llm_report": f"The domain {url} is considered safe."
+        }
+
+    # Otherwise, proceed with feature extraction and prediction
+    features = extract_features_from_url(url)
+    result = predict_from_features(features)
+    feature_dict = dict(zip(FEATURE_NAMES, features))
+    llm_result = generate_response(url)
+    llm_summary = llm_result.get("summary", "LLM response unavailable")
+
+    return {
+        "url": url,
+        "features": feature_dict,
+        "prediction": result["prediction"],
+        "confidence": f"{result['confidence']}%",
+        "llm_report": llm_summary
+    }
+
+@api_bp.route("/check_url", methods=["POST"])
+def check_url():
+    url = request.form.get("url")
+    if not url:
+        return jsonify({"error": "No URL provided"}), 400
+
 
     try:
         # Extract features & run ML prediction

@@ -239,14 +239,17 @@ Based on the information above, provide your assessment of the website.
         "stream": False
     }
 
+
     try:
         # Ensure AI service URL is also safe (important for localhost services)
         if not is_url_safe(OLLAMA_URL) and not OLLAMA_URL.startswith('http://localhost:'):
             return {"error": "AI service URL is restricted"}
-        
+       
         response = requests.post(OLLAMA_URL, json=payload)
         response.raise_for_status()
         raw_text = response.json().get("response", "")
         return {"summary": extract_summary(raw_text)}
     except requests.RequestException as e:
         return {"error": str(e)}
+
+#
