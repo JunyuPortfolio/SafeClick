@@ -35,12 +35,13 @@ def check_url_logic(url: str):
     full_domain = f"{domain_info.domain}.{domain_info.suffix}"
 
     if full_domain in WHITELIST:
+        time.sleep(3)
         return {
             "url": url,
             "features": dict(zip(FEATURE_NAMES, [-1] * len(FEATURE_NAMES))),
             "prediction": "legitimate",
             "confidence": "100",
-            "llm_report": f"The domain {url} is in the trusted whitelist and considered safe."
+            "llm_report": f"The domain {url} is considered safe."
         }
 
     # Otherwise, proceed with feature extraction and prediction
